@@ -70,6 +70,11 @@ app.route('/profile').get((req,res) => {
   res.render('profile');
 })
 
+//applies middleware to confirm if user is authenticated
+app.route('/profile').get(ensureAuthenticated, (req,res) => {
+    res.render('profile');
+  })
+
 //added to define the new authentication strategy  
 passport.use(new LocalStrategy((username, password, done) => {
   myDataBase.findOne({ username: username }, (err, user) => {
@@ -101,6 +106,14 @@ passport.deserializeUser((id, done) => {
   });
 });
 
+//middleware that checks for authentication
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+};
+        
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('Listening on port ' + PORT);
