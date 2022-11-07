@@ -17,6 +17,9 @@ const mySecret = process.env.SESSION_SECRET;
 //added to connect MongoDB for sessions
 const { ObjectID } = require('mongodb');
 
+//added to setup authentication strategy
+const LocalStrategy = require('passport-local');
+
 const app = express();
 
 //added to set view (template) engine
@@ -53,6 +56,17 @@ app.route('/').get((req, res) => {
 res.render('index', { title: 'Connected to Database', message: 'Please log in' });
   
 });
+
+//added to define the new authentication strategy  
+passport.use(new LocalStrategy((username, password, done) => {
+  myDataBase.findOne({ username: username }, (err, user) => {
+    console.log(`User ${username} attempted to log in.`);
+    if (err) return done(err);
+    if (!user) return done(null, false);
+    if (password !== user.password) return done(null, false);
+    return done(null, user);
+  });
+}));
 
 //added to encrypt the session
 passport.serializeUser((user, done) => {
