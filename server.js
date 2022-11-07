@@ -1,8 +1,18 @@
 'use strict';
+//updated to point to new .env file
 require('dotenv').config();
 const express = require('express');
 const myDB = require('./connection');
 const fccTesting = require('./freeCodeCamp/fcctesting.js');
+
+//added to create session
+const session = require('express-session');
+
+//added to create passport
+const passport = require('passport');
+
+//added to provide SESSION_SECRET variable
+const mySecret = process.env.SESSION_SECRET;
 
 const app = express();
 
@@ -12,7 +22,20 @@ app.set('view engine', 'pug');
 //add to set the views property 
 app.set('views', './views/pug');
 
-fccTesting(app); //For FCC testing purposes
+//added to setup session
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: true,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}));
+
+//added to set what properties of passport app should use
+app.use(passport.initialize());
+app.use(passport.session());
+
+//For FCC testing purposes
+fccTesting(app); 
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
