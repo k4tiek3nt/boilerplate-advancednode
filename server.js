@@ -52,10 +52,23 @@ myDB(async client => {
 
 app.route('/').get((req, res) => {
 
-//updated title from 'Hello' to 'Connected to Database'
-res.render('index', { title: 'Connected to Database', message: 'Please log in' });
-  
+//updated to include showLogin: true
+res.render('index', { 
+  title: 'Connected to Database', 
+  message: 'Please log in',
+  showLogin: true });  
 });
+
+//added /login to accept a POST request and authenticate  
+app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
+  res.redirect('/profile');
+})
+
+//added /profile to render the view profile.pug.
+//Note: If the authentication is successful, the user object will be saved in req.user. 
+app.route('/profile').get((req,res) => {
+  res.render('profile');
+})
 
 //added to define the new authentication strategy  
 passport.use(new LocalStrategy((username, password, done) => {
