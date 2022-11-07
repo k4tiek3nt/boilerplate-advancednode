@@ -18,9 +18,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.route('/').get((req, res) => {
-  
-//added to set the view to render  
-res.render('index.pug');
+
+//added to render the title and message
+res.render('index', { title: 'Hello', message: 'Please log in' });
   
 });
 
