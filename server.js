@@ -14,6 +14,9 @@ const passport = require('passport');
 //added to provide SESSION_SECRET variable
 const mySecret = process.env.SESSION_SECRET;
 
+//added to connect MongoDB for sessions
+const { ObjectID } = require('mongodb');
+
 const app = express();
 
 //added to set view (template) engine
@@ -45,6 +48,18 @@ app.route('/').get((req, res) => {
 //added to render the title and message
 res.render('index', { title: 'Hello', message: 'Please log in' });
   
+});
+
+//added to encrypt the session
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+
+//added to decrypt the session, only when user has successfully logged in.
+passport.deserializeUser((id, done) => {
+  myDataBase.findOne({ _id: new ObjectID(id) }, (err, doc) => {
+    done(null, null);
+  });
 });
 
 const PORT = process.env.PORT || 3000;
