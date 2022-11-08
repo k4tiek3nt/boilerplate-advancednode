@@ -68,9 +68,9 @@ app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }
 //Note: If the authentication is successful, the user object will be saved in req.user.
 //updated to implement new middleware "ensureAuthenticated"
 app.route('/profile').get(ensureAuthenticated,(req,res) => {
-  //updated from res.render('profile'); to res.render(process.cwd() + '/views/pug/profile'); 
-  res.render(process.cwd() + '/views/pug/profile');
-//added semicolon
+  //updated from res.render(process.cwd() + '/views/pug/profile');
+  //this will now render the profile.pug if user is authenticated
+  res.render('profile', { username: req.user.username });
 });
 
 //added to define the new authentication strategy  
