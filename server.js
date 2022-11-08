@@ -52,17 +52,49 @@ myDB(async client => {
 
 app.route('/').get((req, res) => {
 
-//updated to include showLogin: true
+//updated to include showRegistration: true
 res.render('index', { 
   title: 'Connected to Database', 
   message: 'Please log in',
-  showLogin: true });  
+  showLogin: true,
+  showRegistration: true 
+  });  
 });
 
-//added /login to accept a POST request and authenticate  
-app.route('/login').post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('/profile');
-})
+//added /register to allow a user to register with POST request that 
+//also authenticates info to confirm if user exists or is new. 
+app.route('/register')
+  .post((req, res, next) => {
+    //query for user
+    myDataBase.findOne({ username: req.body.username }, (err, user) => {
+      if (err) {
+        next(err);
+      } else if (user) {
+        res.redirect('/');
+      } else {
+        //request to add user to database, if not found
+        myDataBase.insertOne({
+          username: req.body.username,
+          password: req.body.password
+        },
+          (err, doc) => {
+            if (err) {
+              res.redirect('/');
+            } else {
+              // The inserted document is held within
+              // the ops property of the doc
+              next(null, doc.ops[0]);
+            }
+          }
+        )
+      }
+    })
+  },
+    passport.authenticate('local', { failureRedirect: '/' }),
+    (req, res, next) => {
+      res.redirect('/profile');
+    }
+  );
 
 //added /profile to render the view profile.pug.
 //Note: If the authentication is successful, the user object will be saved in req.user.
