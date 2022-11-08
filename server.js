@@ -73,6 +73,20 @@ app.route('/profile').get(ensureAuthenticated,(req,res) => {
   res.render('profile', { username: req.user.username });
 });
 
+//added to unauthenticate a user (logout a user)
+app.route('/logout')
+  .get((req, res) => {
+    req.logout();
+    res.redirect('/');
+});
+
+//added to handle 404 errors (page not found), this is middleware
+app.use((req, res, next) => {
+  res.status(404)
+    .type('text')
+    .send('Not Found');
+});
+
 //added to define the new authentication strategy  
 passport.use(new LocalStrategy((username, password, done) => {
   myDataBase.findOne({ username: username }, (err, user) => {
