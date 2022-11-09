@@ -20,6 +20,9 @@ const { ObjectID } = require('mongodb');
 //added to setup authentication strategy
 const LocalStrategy = require('passport-local');
 
+//added to assist with password encryption
+const bcrypt = require('bcrypt');
+
 const app = express();
 
 //added to set view (template) engine
@@ -65,6 +68,8 @@ res.render('index', {
 //also authenticates info to confirm if user exists or is new. 
 app.route('/register')
   .post((req, res, next) => {
+    //added to allow password to be hashed (encrypted)
+    const hash = bcrypt.hashSync(req.body.password, 12);
     //query for user
     myDataBase.findOne({ username: req.body.username }, (err, user) => {
       if (err) {
@@ -75,7 +80,8 @@ app.route('/register')
         //request to add user to database, if not found
         myDataBase.insertOne({
           username: req.body.username,
-          password: req.body.password
+          //updated from req.body.password to apply password hashing
+          password: hash
         },
           (err, doc) => {
             if (err) {
@@ -119,13 +125,16 @@ app.use((req, res, next) => {
     .send('Not Found');
 });
 
-//added to define the new authentication strategy  
+//added to define the new authentication strategy 
 passport.use(new LocalStrategy((username, password, done) => {
   myDataBase.findOne({ username: username }, (err, user) => {
     console.log(`User ${username} attempted to log in.`);
-    if (err) return done(err);
-    if (!user) return done(null, false);
-    if (password !== user.password) return done(null, false);
+    if (err) { return done(err); }
+    if (!user) { return done(null, false); }
+    //updated to include encrypted password handling if is incorrect
+    if (!bcrypt.compareSync(password, user.password)) { 
+        return done(null, false);
+    }
     return done(null, user);
   });
 }));
