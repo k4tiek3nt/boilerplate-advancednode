@@ -4,16 +4,31 @@ const passport = require('passport');
 //added to setup authentication strategy
 const LocalStrategy = require('passport-local');
 
-//added to setup GitHub authentication strategy
-const GitHubStrategy = require('passport-github').Strategy;
-
 //added to assist with password encryption
 const bcrypt = require('bcrypt');
 
 //added to connect MongoDB for sessions
 const { ObjectID } = require('mongodb');
 
+//added to setup GitHub authentication strategy
+const GitHubStrategy = require('passport-github').Strategy;
+
 module.exports = function (app, myDataBase) {
+
+  //added to encrypt the session
+  passport.serializeUser((user, done) => {
+    done(null, user._id);
+  });
+  
+  //added to decrypt the session, only when user has successfully logged in.
+  passport.deserializeUser((id, done) => {
+      myDataBase.findOne({ _id: new ObjectID(id) }, (err, doc) => {
+        //updated to catch error and print to console
+        if (err) return console.error(err);
+        //updated from "null, null" to "null, doc" to apply error checking
+        done(null, doc);
+      });
+  }); 
 
   //added to define the new local authentication strategy 
   passport.use(new LocalStrategy((username, password, done) => {
@@ -31,28 +46,13 @@ module.exports = function (app, myDataBase) {
 
   //added to define the new GitHub authentication strategy
   passport.use(new GitHubStrategy({
-    clientID: process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: process.env.GITHUB_REDIRECT_URI    
+      clientID: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL: 'https://boilerplate-advancednode.k4tiek3nt.repl.co/auth/github/callback'    
     },
     function(accessToken, refreshToken, profile, cb) {
       console.log(profile);
       //Database logic here with callback containing your user object
     }
-  )); 
-
-  //added to encrypt the session
-  passport.serializeUser((user, done) => {
-    done(null, user._id);
-  });
-  
-  //added to decrypt the session, only when user has successfully logged in.
-  passport.deserializeUser((id, done) => {
-    myDataBase.findOne({ _id: new ObjectID(id) }, (err, doc) => {
-      //updated to catch error and print to console
-      if (err) return console.error(err);
-      //updated from "null, null" to "null, doc" to apply error checking
-      done(null, doc);
-    });
-  }); 
+  ));  
 }
