@@ -19,6 +19,12 @@ const routes = require('./routes.js');
 //added to clean up project with modules, this separates authorization
 const auth = require('./auth.js');
 
+//added to require & instantiate http
+const http = require('http').createServer(app);
+
+//added to require & instantiate socket.io as io
+const io = require('socket.io')(http);
+
 const app = express();
 
 //added to set view (template) engine
@@ -54,6 +60,11 @@ myDB(async client => {
 
   //added to tell server when to access auth module
   auth(app, myDataBase);
+
+  //added to listen for connections to server
+  io.on('connection', socket => {
+    console.log('A user has connected');
+  });
   
 //added for error catching in case database doesn't connect
 }).catch(e => {
