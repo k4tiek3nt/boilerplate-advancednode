@@ -1,6 +1,3 @@
-//added to tell file to use env
-require('dotenv').config();
-
 //added to create passport
 const passport = require('passport');
 
