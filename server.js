@@ -28,6 +28,13 @@ const http = require('http').createServer(app);
 //added to require & instantiate socket.io as io
 const io = require('socket.io')(http);
 
+//added to allow Authentication with Socket.IO
+const passportSocketIo = require('passport.socketio');
+const cookieParser = require('cookie-parser');
+const MongoStore = require('connect-mongo')(session);
+const URI = process.env.MONGO_URI;
+const store = new MongoStore({ url: URI });
+
 //added to set view (template) engine
 app.set('view engine', 'pug');
 
@@ -40,6 +47,10 @@ app.use(session({
   resave: true,
   saveUninitialized: true,
   cookie: { secure: false }
+    
+  //added to allow Authentication with Socket.IO
+  key: 'express.sid',
+  store: store
 }));
 
 //added to set what properties of passport app should use
@@ -51,6 +62,18 @@ fccTesting(app);
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+//added to allow Authentication with Socket.IO
+io.use(
+  passportSocketIo.authorize({
+    cookieParser: cookieParser,
+    key: 'express.sid',
+    secret: process.env.SESSION_SECRET,
+    store: store,
+    success: onAuthorizeSuccess,
+    fail: onAuthorizeFail
+  })
+);
 
 //added to allow query of db for list of users
 myDB(async client => {
@@ -85,6 +108,20 @@ myDB(async client => {
     res.render('index', { title: e, message: 'Unable to connect to database' });
   });
 });
+
+//added to allow Authentication with Socket.IO
+function onAuthorizeSuccess(data, accept) {
+  console.log('successful connection to socket.io');
+
+  accept(null, true);
+}
+
+//added to allow Authentication with Socket.IO
+function onAuthorizeFail(data, message, error, accept) {
+  if (error) throw new Error(message);
+  console.log('failed connection to socket.io:', message);
+  accept(null, false);
+}
      
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
