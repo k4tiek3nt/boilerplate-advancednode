@@ -62,13 +62,21 @@ myDB(async client => {
   //added to tell server when to access auth module
   auth(app, myDataBase);
 
-  //edited to allow counting number of 
-  //connections/users
+  //added to allow count of connections/users
   let currentUsers = 0;
+
+  //added to define what to do on connection
   io.on('connection', (socket) => {
     ++currentUsers;
     io.emit('user count', currentUsers);
     console.log('A user has connected');
+    
+    //added to define what to do on disconnect
+    socket.on('disconnect', () => {
+      console.log('A user has disconnected');
+      --currentUsers;
+      io.emit('user count', currentUsers);
+    });
   });
   
 //added for error catching in case database doesn't connect
