@@ -46,7 +46,9 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: true,
   saveUninitialized: true,
-  cookie: { secure: false }
+  
+  //added missing comma, required for expanding session
+  cookie: { secure: false },
     
   //added to allow Authentication with Socket.IO
   key: 'express.sid',
