@@ -93,16 +93,28 @@ myDB(async client => {
   //added to define what to do on connection
   io.on('connection', (socket) => {
     ++currentUsers;
-    io.emit('user count', currentUsers);
+        
+    //updated to announce user connected
+    io.emit('user', {
+      username: socket.request.user.username,
+      currentUsers,
+      connected: true
+    });
     console.log('A user has connected');
     
     //added to define what to do on disconnect
     socket.on('disconnect', () => {
       console.log('A user has disconnected');
       --currentUsers;
-      io.emit('user count', currentUsers);
+      
+      //updated to announce user disconnected
+      io.emit('user', {
+        username: socket.request.user.username,
+        currentUsers,
+        connected: false
+      });
     });
-  });
+  });;
   
 //added for error catching in case database doesn't connect
 }).catch(e => {
@@ -126,6 +138,11 @@ function onAuthorizeFail(data, message, error, accept) {
 }
      
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('Listening on port ' + PORT);
+
+//updated to http.listen instead of app.listen
+//should have changed back at Set up the Environment
+http.listen(PORT, () => {
+  //updated from 'Listening on port ' + PORT
+  //also should have changed back at Set up the Environment
+  console.log(`Listening on port ${PORT}`);
 });
